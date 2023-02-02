@@ -23,13 +23,40 @@
             font-size: 25px;
             padding: 10px;
         }
+        .menu{
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            translate: -50% -50%;
+            
+            visibility: hidden;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+
+            background-color: black;
+            border: blue dashed 5px;
+        }
+        .btn{
+            font-family: fantasy;
+            font-size: 2em;
+            margin: 20px;
+            padding: 10px;
+
+            text-transform: uppercase;
+            background-color: blue;
+            color: white;
+
+            cursor: pointer;
+        }
     </style>
 </head>
 
 <body>
     <div id="gameContainer">
-        <div id="menuPause">
-
+        <div class="menu" id="menuPause">
+            <button class="btn" id="resume">resume</button>
+            <button class="btn" id="restart">restart</button>
         </div>
         <canvas id="map" height="600" width="600"></canvas>
         <div id="scoreContainer">000</div>
@@ -51,7 +78,8 @@
         let score = 0;
         let Rawscore = 0;
         let palletNbr = 0;
-        let scoreContainer = document.getElementById('scoreContainer')
+        const scoreContainer = document.getElementById('scoreContainer')
+        const pauseMenu = document.getElementById('menuPause')
         let pacman = {
             'position': {
                 'x': 0,
@@ -92,6 +120,7 @@
             ];
             frenzy = false;
 
+            paused = false;
             i = 0;
             score = 0;
             palletNbr = 0;
@@ -167,6 +196,9 @@
             ];
             generateMap();
 
+            document.querySelectorAll('.menu').forEach((el) => {
+                el.style.visibility = 'hidden';
+            })
             clearInterval(intervalId);
             intervalId = setInterval(update, refreshRate);
 
@@ -330,16 +362,30 @@
 
                     break;
                 case 'p':
-                    if (paused) {
-                        intervalId = setInterval(update, refreshRate);
-                    } else {
-                        clearInterval(intervalId);
-                    }
-                    paused = !paused;
+                    pauseGame();
                     break;
             }
         };
 
+        function pauseGame(){
+
+            if (paused) {
+                        intervalId = setInterval(update, refreshRate);
+                        pauseMenu.style.visibility = 'hidden'
+                    } else {
+                        pauseMenu.style.visibility = 'visible'
+                        clearInterval(intervalId);
+                    }
+                    paused = !paused;
+        }
+        function resetFrenzy(){
+            clearTimeout(frenzyTimer);
+            if(frenzy){
+                setTimeout(() => {
+                    frenzy = false;
+                }, frenzyDur);
+            }
+        }
         function gameOver() {
             init();
         }
@@ -430,10 +476,7 @@
                 score += 5;
                 map[pacman.position.y][pacman.position.x] = 0;
                 frenzy = true;
-                clearTimeout(frenzyTimer);
-                frenzyTimer = setTimeout(() => {
-                    frenzy = false;
-                }, frenzyDur);
+                resetFrenzy()
             }
             if (score < 10) {
                 scoreContainer.innerText = '00' + score;
@@ -448,6 +491,7 @@
             if (rawScore == palletNbr) {
                 win();
             }
+
             ghostIA();
             checkcol()
 
@@ -458,6 +502,8 @@
         init();
 
         document.addEventListener('keydown', controls);
+        document.getElementById('resume').addEventListener('click', pauseGame);
+        document.getElementById('restart').addEventListener('click', init);
 
     </script>
 </body>
